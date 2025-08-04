@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EthOS Quiz Portal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="window">
+    <h1>Eth OS Quiz</h1>
+
+    <div class="input-section">
+      <label for="username">Enter your Twitter/X username:</label><br>
+      <input type="text" id="username" placeholder="@yourhandle" />
+      <button class="button" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz" class="quiz-section" style="display: none;">
+      <h2>Answer the following questions:</h2>
+      <div id="quizContainer"></div>
+      <div class="nav-buttons">
+        <button class="button" onclick="prevPage()">Back</button>
+        <button class="button" onclick="nextPage()">Next</button>
+        <button class="button" onclick="submitQuiz()" id="submitBtn" style="display:none">Submit</button>
+      </div>
+    </div>
+
+    <div id="result" class="result-section">
+      <h2>Your Score: <span id="scoreDisplay"></span>/100</h2>
+      <p id="luckyMessage"></p>
+      <p id="rewardCode"></p>
+    </div>
+  </div>
+
+  <script>
+  let currentPage = 0;
+  let pages = [];
+
+  function initPages() {
+    pages = document.querySelectorAll('.quiz-page');
+    pages.forEach((page, index) => {
+      page.style.display = index === 0 ? 'block' : 'none';
+    });
+    updateNavButtons();
+  }
+
+  function updateNavButtons() {
+    document.querySelector('.nav-buttons button[onclick="prevPage()"]').style.display = currentPage === 0 ? 'none' : 'inline-block';
+    document.querySelector('.nav-buttons button[onclick="nextPage()"]').style.display = currentPage === pages.length - 1 ? 'none' : 'inline-block';
+    document.getElementById('submitBtn').style.display = currentPage === pages.length - 1 ? 'inline-block' : 'none';
+  }
+
+  function nextPage() {
+    if (currentPage < pages.length - 1) {
+      pages[currentPage].style.display = 'none';
+      currentPage++;
+      pages[currentPage].style.display = 'block';
+      updateNavButtons();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 0) {
+      pages[currentPage].style.display = 'none';
+      currentPage--;
+      pages[currentPage].style.display = 'block';
+      updateNavButtons();
+    }
+  }
+
+  function startQuiz() {
+    const username = document.getElementById('username').value;
+    if (username.trim() === '') {
+      alert('Please enter your Twitter/X username.');
+      return;
+    }
+    document.querySelector('.input-section').style.display = 'none';
+    document.getElementById('quiz').style.display = 'block';
+  }
+
+  function submitQuiz() {
+    let correct = 0;
+    for (let i = 1; i <= 23; i++) {
+      const options = document.getElementsByName('q' + i);
+      for (let option of options) {
+        if (option.checked && option.value === 'true') {
+          correct++;
+        }
+      }
+    }
+    const score = Math.round((correct / 23) * 100);
+    document.getElementById('quiz').style.display = 'none';
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('scoreDisplay').innerText = score;
+
+    if (score === 100) {
+      document.getElementById('luckyMessage').innerText = 'Congratulations! You are lucky!';
+      document.getElementById('rewardCode').innerText = 'Your reward code: ' + generateCode();
+    } else {
+      document.getElementById('luckyMessage').innerText = 'Keep trying to get a perfect score!';
+    }
+  }
+
+  function generateCode() {
+    const prefix = 'E';
+    const num = Math.floor(1000000 + Math.random() * 9000000);
+    return prefix + num;
+  }
+
+  fetch('quiz-pages.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('quizContainer').innerHTML = data;
+      initPages();
+    });
+</script>
+</body>
+</html>
